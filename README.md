@@ -115,3 +115,12 @@ SLOC in important files: 5
 NPM packages installed: 13
 NPM packages installed (including transitive dependencies): 86
 ```
+
+```
+| Project          | Total Files | Git Versioned Files | Files in node_modules | SLOC in Important Files | NPM Packages Installed | NPM Packages (Transitive) |
+|------------------|-------------|---------------------|-----------------------|-------------------------|------------------------|--------------------------|
+| counter-next     | 16,758      | 12                  | 16,656                | 12                      | 24                     | 370                      |
+| counter-vue      | 19,022      | 12                  | 19,010                | 13                      | 51                     | 832                      |
+| counter-angular  | 23,270      | 22                  | 23,235                | 15                      | 36                     | 955                      |
+| counter-svelte   | 1,029       | 10                  | 1,016                 | 5                       | 13                     | 86                       |
+```
