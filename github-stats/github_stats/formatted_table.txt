@@ -1,0 +1,5 @@
+ name watchers_count forks_count stars_count open_issues_count total_issues_count open_prs_count total_prs_count releases_count
+0 angular/angular 3028 25122 93384 1709 52876 233 26176 345
+1 facebook/react 6624 45986 218012 1600 27000 432 14335 99
+2 vuejs/core 765 7782 42974 1067 8815 383 4164 192
+3 sveltejs/svelte 863 4267 75182 1050 10098 98 4241 63

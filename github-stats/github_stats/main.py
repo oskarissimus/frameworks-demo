@@ -1,88 +1,80 @@
-import requests
+from github import Github
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 
-# List of GitHub repositories to fetch stats for
+# Initialize a Github instance:
+# If you have a GitHub access token, you can provide it here to avoid rate limiting
+# g = Github("your_access_token")
+g = Github()
+
 repositories = ["angular/angular", "facebook/react", "vuejs/core", "sveltejs/svelte"]
 
 
-# Function to get the total number of pages from the 'Link' header
-def get_total_pages(link_header):
-    if link_header is None:
-        return 1
-    parts = link_header.split(",")
-    last_page_link = [part for part in parts if 'rel="last"' in part]
-    if not last_page_link:
-        return 1
-    last_page_url = last_page_link[0].split(";")[0].strip("<> ")
-    page_param = last_page_url.split("page=")[-1]
-    return int(page_param)
+def fetch_repo_stats(repo_name):
+    repo = g.get_repo(repo_name)
 
-
-# Function to fetch repository statistics
-def fetch_repo_stats(repo):
-    base_url = f"https://api.github.com/repos/{repo}"
-    response = requests.get(base_url)
-
-    if response.status_code != 200:
-        return f"Error fetching data for {repo}: {response.status_code}"
-
-    data = response.json()
-
-    # General repository stats
     stats = {
-        "name": repo,
-        "watchers_count": data.get("subscribers_count", "N/A"),
-        "forks_count": data.get("forks_count", "N/A"),
-        "stars_count": data.get("stargazers_count", "N/A"),
+        "name": repo.full_name,
+        "watchers_count": repo.subscribers_count,
+        "forks_count": repo.forks_count,
+        "stars_count": repo.stargazers_count,
+        "open_issues_count": repo.open_issues_count,
+        "total_issues_count": repo.get_issues(state="all").totalCount,
+        "open_prs_count": repo.get_pulls(state="open").totalCount,
+        "total_prs_count": repo.get_pulls(state="all").totalCount,
     }
 
-    # Fetching additional details
-    issues_response = requests.get(f"{base_url}/issues?state=all&per_page=1")
-    prs_response = requests.get(f"{base_url}/pulls?state=all&per_page=1")
-    releases_response = requests.get(f"{base_url}/releases")
-
-    if (
-        issues_response.status_code != 200
-        or prs_response.status_code != 200
-        or releases_response.status_code != 200
-    ):
-        return f"Error fetching additional data for {repo}: Issues({issues_response.status_code}), PRs({prs_response.status_code}), Releases({releases_response.status_code})"
-
-    # Determine total number of pages for issues and PRs
-    total_issues_pages = get_total_pages(issues_response.headers.get("Link"))
-    total_prs_pages = get_total_pages(prs_response.headers.get("Link"))
-
-    # Calculate total number of issues and PRs (assuming 30 items per page)
-    total_issues = total_issues_pages * 30
-    total_prs = total_prs_pages * 30
-
-    # Adding additional details to stats
-    stats.update(
-        {
-            "open_issues_count": data.get("open_issues_count", "N/A"),
-            "total_issues_count": total_issues,
-            "open_prs_count": len(
-                [pr for pr in prs_response.json() if pr["state"] == "open"]
-            ),
-            "total_prs_count": total_prs,
-            "releases_count": len(releases_response.json()),
-            "date_of_last_release": releases_response.json()[0]["published_at"]
-            if releases_response.json()
-            else "N/A",
-        }
-    )
+    releases = repo.get_releases()
+    if releases.totalCount > 0:
+        latest_release = releases[0]
+        stats["releases_count"] = releases.totalCount
+        stats["date_of_last_release"] = latest_release.published_at
+    else:
+        stats["releases_count"] = 0
+        stats["date_of_last_release"] = "N/A"
 
     return stats
 
 
-# Main execution
+def color_formatter(val, min_val, max_val):
+    if val == min_val:
+        color = "red"
+    elif val == max_val:
+        color = "green"
+    else:
+        color = "yellow"
+    return f"background-color: {color}"
+
+
+def apply_color_formatting(df):
+    styled_df = df.copy()
+    for column in styled_df.columns:
+        if styled_df[column].dtype in [int, float]:
+            max_val = styled_df[column].max()
+            min_val = styled_df[column].min()
+            styled_df[column] = styled_df[column].apply(
+                lambda x: color_formatter(x, min_val, max_val)
+            )
+    return styled_df
+
+
 if __name__ == "__main__":
-    for repo in repositories:
-        stats = fetch_repo_stats(repo)
-        if isinstance(stats, dict):
-            print(f"Stats for {repo}:")
-            for key, value in stats.items():
-                print(f"{key}: {value}")
-            print()
-        else:
-            print(stats)
-            print()
+    stats_list = [fetch_repo_stats(repo_name) for repo_name in repositories]
+    df = pd.DataFrame(stats_list)
+    styled_df = apply_color_formatting(df)
+    print(styled_df)
+
+    # Optionally save the styled DataFrame as an image
+    sns.set()
+    fig, ax = plt.subplots(figsize=(10, 5))  # Adjust size as needed
+    ax.axis("tight")
+    ax.axis("off")
+    ax.table(
+        cellText=styled_df.values,
+        colLabels=styled_df.columns,
+        cellLoc="center",
+        loc="center",
+        cellColours=styled_df.to_numpy(),
+    )
+    plt.savefig("repo_stats_table.png")
