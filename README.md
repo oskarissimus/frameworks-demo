@@ -82,4 +82,36 @@ For a Svelte project:
    npm run dev
    ```
 
-These commands will set up the initial project structure for each framework and start a local development server, typically accessible at `http://localhost:3000` for React, Vue, and Svelte, and `http://localhost:4200` for Angular. Remember, these frameworks may have additional setup or initialization steps for more advanced configurations or specific project requirements.
+```
+Project: counter-next
+Total files: 16758
+Git versioned files: 12
+Files in node_modules: 16656
+SLOC in important files: 12
+NPM packages installed: 24
+NPM packages installed (including transitive dependencies): 370
+
+Project: counter-vue
+Total files: 19022
+Git versioned files: 12
+Files in node_modules: 19010
+SLOC in important files: 13
+NPM packages installed: 51
+NPM packages installed (including transitive dependencies): 832
+
+Project: counter-angular
+Total files: 23270
+Git versioned files: 22
+Files in node_modules: 23235
+SLOC in important files: 15
+NPM packages installed: 36
+NPM packages installed (including transitive dependencies): 955
+
+Project: counter-svelte
+Total files: 1029
+Git versioned files: 10
+Files in node_modules: 1016
+SLOC in important files: 5
+NPM packages installed: 13
+NPM packages installed (including transitive dependencies): 86
+```
